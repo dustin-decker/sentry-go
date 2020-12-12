@@ -61,5 +61,4 @@ func main() {
 		panic("y tho")
 	})
 
-	app.Logger.Fatal(app.Start(":3000"))
 }

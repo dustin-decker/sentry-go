@@ -50,7 +50,7 @@ app.GET("/", func(ctx echo.Context) error {
 })
 
 // And run it
-app.Logger.Fatal(app.Start(":3000"))
+
 ```
 
 ## Configuration
@@ -114,7 +114,7 @@ app.GET("/foo", func(ctx echo.Context) error {
 	panic("y tho")
 })
 
-app.Logger.Fatal(app.Start(":3000"))
+
 ```
 
 ### Accessing Request in `BeforeSend` callback

@@ -6,8 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
+
 	"math/rand"
 	"net/http"
 	"os"
@@ -69,10 +68,6 @@ var rng = &lockedRand{
 type usageError struct {
 	error
 }
-
-// Logger is an instance of log.Logger that is use to provide debug information about running Sentry Client
-// can be enabled by either using Logger.SetOutput directly or with Debug client option.
-var Logger = log.New(ioutil.Discard, "[Sentry] ", log.LstdFlags)
 
 // EventProcessor is a function that processes an event.
 // Event processors are used to change an event before it is sent to Sentry.
@@ -197,7 +192,6 @@ func NewClient(options ClientOptions) (*Client, error) {
 		if debugWriter == nil {
 			debugWriter = os.Stderr
 		}
-		Logger.SetOutput(debugWriter)
 	}
 
 	if options.Dsn == "" {
@@ -277,12 +271,12 @@ func (client *Client) setupIntegrations() {
 
 	for _, integration := range integrations {
 		if client.integrationAlreadyInstalled(integration.Name()) {
-			Logger.Printf("Integration %s is already installed\n", integration.Name())
+
 			continue
 		}
 		client.integrations = append(client.integrations, integration)
 		integration.SetupOnce(client)
-		Logger.Printf("Integration installed: %s\n", integration.Name())
+
 	}
 }
 
@@ -487,7 +481,7 @@ func (client *Client) processEvent(event *Event, hint *EventHint, scope EventMod
 	}
 
 	if !sample(options.SampleRate) {
-		Logger.Println("Event dropped due to SampleRate hit.")
+
 		return nil
 	}
 
@@ -501,7 +495,7 @@ func (client *Client) processEvent(event *Event, hint *EventHint, scope EventMod
 			hint = &EventHint{}
 		}
 		if event = options.BeforeSend(event, hint); event == nil {
-			Logger.Println("Event dropped due to BeforeSend callback.")
+
 			return nil
 		}
 	}
@@ -563,19 +557,17 @@ func (client *Client) prepareEvent(event *Event, hint *EventHint, scope EventMod
 	}
 
 	for _, processor := range client.eventProcessors {
-		id := event.EventID
 		event = processor(event, hint)
 		if event == nil {
-			Logger.Printf("Event dropped by one of the Client EventProcessors: %s\n", id)
+
 			return nil
 		}
 	}
 
 	for _, processor := range globalEventProcessors {
-		id := event.EventID
 		event = processor(event, hint)
 		if event == nil {
-			Logger.Printf("Event dropped by one of the Global EventProcessors: %s\n", id)
+
 			return nil
 		}
 	}

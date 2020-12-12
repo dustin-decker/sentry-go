@@ -175,7 +175,7 @@ func (s *Span) Finish() {
 
 	hub := hubFromContext(s.ctx)
 	if hub.Scope().Transaction() == "" {
-		Logger.Printf("Missing transaction name for span with op = %q", s.Op)
+
 	}
 	hub.CaptureEvent(event)
 }
@@ -320,7 +320,7 @@ func (s *Span) toEvent() *Event {
 	finished := make([]*Span, 0, len(children))
 	for _, child := range children {
 		if child.EndTime.IsZero() {
-			Logger.Printf("Dropped unfinished span: Op=%q TraceID=%s SpanID=%s", child.Op, child.TraceID, child.SpanID)
+
 			continue
 		}
 		finished = append(finished, child)

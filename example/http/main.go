@@ -32,7 +32,6 @@ var addr = flag.String("addr", "127.0.0.1:3000", "bind address")
 
 func main() {
 	flag.Parse()
-	configureLoggers()
 	// The helper run function does not call log.Fatal, otherwise deferred
 	// function calls would not be executed when the program exits.
 	log.Fatal(run())
@@ -257,16 +256,4 @@ func NewImage(ctx context.Context, width, height int, seed []byte) image.Image {
 		copy(img.Pix[i:], p)
 	}
 	return img
-}
-
-// configureLoggers configures the standard logger and the logger used by the
-// Sentry SDK.
-//
-// The only reason to change logger configuration in this example is aesthetics.
-func configureLoggers() {
-	logFlags := log.Ldate | log.Ltime
-	sentry.Logger.SetPrefix("[sentry sdk]   ")
-	sentry.Logger.SetFlags(logFlags)
-	log.SetPrefix("[http example] ")
-	log.SetFlags(logFlags)
 }

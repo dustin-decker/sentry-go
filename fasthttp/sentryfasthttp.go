@@ -94,7 +94,7 @@ func GetHubFromContext(ctx *fasthttp.RequestCtx) *sentry.Hub {
 func convert(ctx *fasthttp.RequestCtx) *http.Request {
 	defer func() {
 		if err := recover(); err != nil {
-			sentry.Logger.Printf("%v", err)
+
 		}
 	}()
 

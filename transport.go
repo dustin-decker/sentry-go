@@ -86,15 +86,13 @@ func getRequestBodyFromEvent(event *Event) []byte {
 	}
 	body, err = json.Marshal(event)
 	if err == nil {
-		Logger.Println(msg)
+
 		return body
 	}
 
 	// This should _only_ happen when Event.Exception[0].Stacktrace.Frames[0].Vars is unserializable
 	// Which won't ever happen, as we don't use it now (although it's the part of public interface accepted by Sentry)
 	// Juuust in case something, somehow goes utterly wrong.
-	Logger.Println("Event couldn't be marshaled, even with stripped contextual data. Skipping delivery. " +
-		"Please notify the SDK owners with possibly broken payload.")
 	return nil
 }
 
@@ -199,7 +197,7 @@ func NewHTTPTransport() *HTTPTransport {
 func (t *HTTPTransport) Configure(options ClientOptions) {
 	dsn, err := NewDsn(options.Dsn)
 	if err != nil {
-		Logger.Printf("%v\n", err)
+
 		return
 	}
 	t.dsn = dsn
@@ -271,25 +269,6 @@ func (t *HTTPTransport) SendEvent(event *Event) {
 	// channel (used as a queue).
 	b := <-t.buffer
 
-	select {
-	case b.items <- request:
-		var eventType string
-		if event.Type == transactionType {
-			eventType = "transaction"
-		} else {
-			eventType = fmt.Sprintf("%s event", event.Level)
-		}
-		Logger.Printf(
-			"Sending %s [%s] to %s project: %d",
-			eventType,
-			event.EventID,
-			t.dsn.host,
-			t.dsn.projectID,
-		)
-	default:
-		Logger.Println("Event dropped due to transport buffer being full.")
-	}
-
 	t.buffer <- b
 }
 
@@ -341,14 +320,14 @@ started:
 	// Wait until the current batch is done or the timeout.
 	select {
 	case <-b.done:
-		Logger.Println("Buffer flushed successfully.")
+
 		return true
 	case <-toolate:
 		goto fail
 	}
 
 fail:
-	Logger.Println("Buffer flushing reached the timeout.")
+
 	return false
 }
 
@@ -373,7 +352,7 @@ func (t *HTTPTransport) worker() {
 			response, err := t.client.Do(request)
 
 			if err != nil {
-				Logger.Printf("There was an issue with sending an event: %v", err)
+
 			}
 
 			if response != nil && response.StatusCode == http.StatusTooManyRequests {
@@ -381,7 +360,7 @@ func (t *HTTPTransport) worker() {
 				t.mu.Lock()
 				t.disabledUntil = deadline
 				t.mu.Unlock()
-				Logger.Printf("Too many requests, backing off till: %s\n", deadline)
+
 			}
 		}
 
@@ -418,7 +397,7 @@ func NewHTTPSyncTransport() *HTTPSyncTransport {
 func (t *HTTPSyncTransport) Configure(options ClientOptions) {
 	dsn, err := NewDsn(options.Dsn)
 	if err != nil {
-		Logger.Printf("%v\n", err)
+
 		return
 	}
 	t.dsn = dsn
@@ -457,29 +436,15 @@ func (t *HTTPSyncTransport) SendEvent(event *Event) {
 		request.Header.Set(headerKey, headerValue)
 	}
 
-	var eventType string
-	if event.Type == transactionType {
-		eventType = "transaction"
-	} else {
-		eventType = fmt.Sprintf("%s event", event.Level)
-	}
-	Logger.Printf(
-		"Sending %s [%s] to %s project: %d",
-		eventType,
-		event.EventID,
-		t.dsn.host,
-		t.dsn.projectID,
-	)
-
 	response, err := t.client.Do(request)
 
 	if err != nil {
-		Logger.Printf("There was an issue with sending an event: %v", err)
+
 	}
 
 	if response != nil && response.StatusCode == http.StatusTooManyRequests {
 		t.disabledUntil = time.Now().Add(retryAfter(time.Now(), response))
-		Logger.Printf("Too many requests, backing off till: %s\n", t.disabledUntil)
+
 	}
 }
 
@@ -497,11 +462,11 @@ func (t *HTTPSyncTransport) Flush(_ time.Duration) bool {
 type noopTransport struct{}
 
 func (t *noopTransport) Configure(options ClientOptions) {
-	Logger.Println("Sentry client initialized with an empty DSN. Using noopTransport. No events will be delivered.")
+
 }
 
 func (t *noopTransport) SendEvent(event *Event) {
-	Logger.Println("Event dropped due to noopTransport usage.")
+
 }
 
 func (t *noopTransport) Flush(_ time.Duration) bool {

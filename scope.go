@@ -413,10 +413,9 @@ func (scope *Scope) ApplyToEvent(event *Event, hint *EventHint) *Event {
 	}
 
 	for _, processor := range scope.eventProcessors {
-		id := event.EventID
 		event = processor(event, hint)
 		if event == nil {
-			Logger.Printf("Event dropped by one of the Scope EventProcessors: %s\n", id)
+
 			return nil
 		}
 	}
